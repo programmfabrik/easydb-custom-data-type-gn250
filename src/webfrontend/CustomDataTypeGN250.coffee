@@ -3,12 +3,6 @@ Session::getCustomDataTypes = ->
 
 class CustomDataTypeGN250 extends CustomDataType
 
-  # the eventually running xhrs
-  entityfacts_xhr = undefined
-
-  # short info panel
-  entityfacts_Panel = new Pane
-
   # custom style to head
   CUI.ready =>
     style = DOM.element("style")
@@ -94,19 +88,22 @@ class CustomDataTypeGN250 extends CustomDataType
 
   #######################################################################
   # read info from gn250-terminology
-  __getInfoForGN250Entry: (uri, tooltip, mapquest_api_key) ->
+  __getInfoForGN250Entry: (uri, tooltip, mapquest_api_key, extendedInfo_xhr) ->
+
     # extract gn250ID from uri
     gn250ID = uri
     gn250ID = gn250ID.split "/"
     gn250ID = gn250ID.pop()
+
     # download infos from entityfacts
-    if entityfacts_xhr != undefined
+    if extendedInfo_xhr != undefined
+
       # abort eventually running request
-      entityfacts_xhr.abort()
+      extendedInfo_xhr.abort()
+
     # start new request
-    console.log "infopopup!!!"
-    entityfacts_xhr = new (CUI.XHR)(url: location.protocol + '//uri.gbv.de/terminology/gn250/' + gn250ID + '?format=json')
-    entityfacts_xhr.start()
+    extendedInfo_xhr = new (CUI.XHR)(url: location.protocol + '//uri.gbv.de/terminology/gn250/' + gn250ID + '?format=json')
+    extendedInfo_xhr.start()
     .done((data, status, statusText) ->
       htmlContent = '<span style="font-weight: bold">Informationen über den Eintrag</span>'
       if mapquest_api_key
@@ -163,7 +160,7 @@ class CustomDataTypeGN250 extends CustomDataType
       tooltip.autoSize()
     )
     .fail (data, status, statusText) ->
-        CUI.debug 'FAIL', entityfacts_xhr.getXHR(), entityfacts_xhr.getResponseHeaders()
+        CUI.debug 'FAIL', extendedInfo_xhr.getXHR(), extendedInfo_xhr.getResponseHeaders()
 
     return
 
@@ -188,6 +185,9 @@ class CustomDataTypeGN250 extends CustomDataType
     searchsuggest_xhr.start().done((data, status, statusText) ->
 
         CUI.debug 'OK', searchsuggest_xhr.getXHR(), searchsuggest_xhr.getResponseHeaders()
+
+        # init xhr for tooltipcontent
+        extendedInfo_xhr = undefined
 
         # create new menu with suggestions
         menu_items = []
@@ -221,7 +221,7 @@ class CustomDataTypeGN250 extends CustomDataType
                     mapquest_api_key = ''
                     if that.getCustomSchemaSettings().mapquest_api_key?.value
                         mapquest_api_key = that.getCustomSchemaSettings().mapquest_api_key?.value
-                    that.__getInfoForGN250Entry(data[3][key], tooltip, mapquest_api_key)
+                    that.__getInfoForGN250Entry(data[3][key], tooltip, mapquest_api_key, extendedInfo_xhr)
                     new Label(icon: "spinner", text: "lade Informationen")
             menu_items.push item
 

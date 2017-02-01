@@ -1,3 +1,3 @@
-# easydb-custom-data-type-geonames
-Custom Data Type "GEONAMES" for easydb
+# easydb-custom-data-type-gn250
+Custom Data Type "gn250" for easydb
 

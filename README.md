@@ -1,6 +1,6 @@
 # easydb-custom-data-type-gn250
 
-This is a plugin for [easyDB 5](http://5.easydb.de/) with Custom Data Type `CustomDataTypeGN250` for references to entities of the [Bundesamt für Kartographie](http://www.geodatenzentrum.de/geodaten/gdz_rahmen.gdz_div?gdz_spr=deu&gdz_akt_zeile=5&gdz_anz_zeile=1&gdz_unt_zeile=20&gdz_user_id=0).
+This is a plugin for [easyDB 5](http://5.easydb.de/) with Custom Data Type `CustomDataTypeGN250` for references to entities of the gn250-Set of [Bundesamt für Kartographie](http://www.geodatenzentrum.de/geodaten/gdz_rahmen.gdz_div?gdz_spr=deu&gdz_akt_zeile=5&gdz_anz_zeile=1&gdz_unt_zeile=20&gdz_user_id=0).
 
 The Plugins uses <http://ws.gbv.de/suggest/gn250/> for the autocomplete-suggestions and the mapbox-API for displaying the result in a map.
 

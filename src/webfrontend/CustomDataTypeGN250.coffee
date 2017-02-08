@@ -21,6 +21,15 @@ class CustomDataTypeGN250 extends CustomDataType
     $$("custom.data.type.gn250.name")
 
   #######################################################################
+  # check if field is empty
+  # needed for editor-table-view
+  isEmpty: (data, top_level_data, opts) ->
+      if data[@name()]?.conceptName
+          false
+      else
+          true
+
+  #######################################################################
   # handle editorinput
   renderEditorInput: (data, top_level_data, opts) ->
     # console.error @, data, top_level_data, opts, @name(), @fullName()
@@ -458,6 +467,13 @@ class CustomDataTypeGN250 extends CustomDataType
             }
           console.debug "getDataStatus: empty"
           return "empty"
+    else
+      cdata = {
+            conceptName : ''
+            conceptURI : ''
+        }
+      console.debug "getDataStatus: empty"
+      return "empty"
 
 
   #######################################################################

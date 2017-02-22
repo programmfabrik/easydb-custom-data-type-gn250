@@ -39,8 +39,6 @@ class CustomDataTypeGN250 extends CustomDataType
             conceptURI : ''
         }
       data[@name()] = cdata
-      conceptURI = ''
-      conceptName = ''
     else
       cdata = data[@name()]
       conceptName = cdata.conceptName
@@ -179,92 +177,97 @@ class CustomDataTypeGN250 extends CustomDataType
   __updateSuggestionsMenu: (cdata, cdata_form, suggest_Menu, searchsuggest_xhr) ->
     that = @
 
-    gn250_searchterm = cdata_form.getFieldsByName("gn250SearchBar")[0].getValue()
-    gn250_countSuggestions = cdata_form.getFieldsByName("gn250SelectCountOfSuggestions")[0].getValue()
+    delayMillisseconds = 200
 
-    if gn250_searchterm.length == 0
-        return
+    setTimeout ( ->
 
-    # run autocomplete-search via xhr
-    if searchsuggest_xhr.xhr != undefined
-        # abort eventually running request
-        searchsuggest_xhr.xhr.abort()
-    # start new request
-    searchsuggest_xhr = new (CUI.XHR)(url: location.protocol + '//ws.gbv.de/suggest/gn250/?searchterm=' + gn250_searchterm + '&count=' + gn250_countSuggestions)
-    searchsuggest_xhr.start().done((data, status, statusText) ->
+        gn250_searchterm = cdata_form.getFieldsByName("gn250SearchBar")[0].getValue()
+        gn250_countSuggestions = cdata_form.getFieldsByName("gn250SelectCountOfSuggestions")[0].getValue()
 
-        CUI.debug 'OK', searchsuggest_xhr.getXHR(), searchsuggest_xhr.getResponseHeaders()
+        if gn250_searchterm.length == 0
+            return
 
-        # init xhr for tooltipcontent
-        extendedInfo_xhr = undefined
+        # run autocomplete-search via xhr
+        if searchsuggest_xhr.xhr != undefined
+            # abort eventually running request
+            searchsuggest_xhr.xhr.abort()
+        # start new request
+        searchsuggest_xhr = new (CUI.XHR)(url: location.protocol + '//ws.gbv.de/suggest/gn250/?searchterm=' + gn250_searchterm + '&count=' + gn250_countSuggestions)
+        searchsuggest_xhr.start().done((data, status, statusText) ->
 
-        # create new menu with suggestions
-        menu_items = []
-        # the actual Featureclass
-        for suggestion, key in data[1]
-          do(key) ->
-            # the actual Featureclass...
-            aktType = data[2][key]
-            lastType = ''
-            if key > 0
-              lastType = data[2][key-1]
-            if aktType != lastType
-              item =
-                divider: true
-              menu_items.push item
-              item =
-                label: aktType
-              menu_items.push item
-              item =
-                divider: true
-              menu_items.push item
-            item =
-              text: suggestion
-              value: data[3][key]
-              tooltip:
-                markdown: true
-                placement: "e"
-                content: (tooltip) ->
-                  # if enabled in mask-config
-                  if that.getCustomMaskSettings().show_infopopup?.value
-                    mapquest_api_key = ''
-                    if that.getCustomSchemaSettings().mapquest_api_key?.value
-                        mapquest_api_key = that.getCustomSchemaSettings().mapquest_api_key?.value
-                    that.__getInfoForGN250Entry(data[3][key], tooltip, mapquest_api_key, extendedInfo_xhr)
-                    new Label(icon: "spinner", text: "lade Informationen")
-            menu_items.push item
+            CUI.debug 'OK', searchsuggest_xhr.getXHR(), searchsuggest_xhr.getResponseHeaders()
 
-        # set new items to menu
-        itemList =
-          onClick: (ev2, btn) ->
-            # lock in save data
-            cdata.conceptURI = btn.getOpt("value")
-            cdata.conceptName = btn.getText()
-            # lock in form
-            cdata_form.getFieldsByName("conceptName")[0].storeValue(cdata.conceptName).displayValue()
-            # nach eadb5-Update durch "setText" ersetzen und "__checkbox" rausnehmen
-            cdata_form.getFieldsByName("conceptURI")[0].__checkbox.setText(cdata.conceptURI)
-            cdata_form.getFieldsByName("conceptURI")[0].show()
+            # init xhr for tooltipcontent
+            extendedInfo_xhr = undefined
 
-            # clear searchbar
-            cdata_form.getFieldsByName("gn250SearchBar")[0].setValue('')
-          items: menu_items
+            # create new menu with suggestions
+            menu_items = []
+            # the actual Featureclass
+            for suggestion, key in data[1]
+              do(key) ->
+                # the actual Featureclass...
+                aktType = data[2][key]
+                lastType = ''
+                if key > 0
+                  lastType = data[2][key-1]
+                if aktType != lastType
+                  item =
+                    divider: true
+                  menu_items.push item
+                  item =
+                    label: aktType
+                  menu_items.push item
+                  item =
+                    divider: true
+                  menu_items.push item
+                item =
+                  text: suggestion
+                  value: data[3][key]
+                  tooltip:
+                    markdown: true
+                    placement: "e"
+                    content: (tooltip) ->
+                      # if enabled in mask-config
+                      if that.getCustomMaskSettings().show_infopopup?.value
+                        mapquest_api_key = ''
+                        if that.getCustomSchemaSettings().mapquest_api_key?.value
+                            mapquest_api_key = that.getCustomSchemaSettings().mapquest_api_key?.value
+                        that.__getInfoForGN250Entry(data[3][key], tooltip, mapquest_api_key, extendedInfo_xhr)
+                        new Label(icon: "spinner", text: "lade Informationen")
+                menu_items.push item
 
-        # if no hits set "empty" message to menu
-        if itemList.items.length == 0
-          itemList =
-            items: [
-              text: "kein Treffer"
-              value: undefined
-            ]
+            # set new items to menu
+            itemList =
+              onClick: (ev2, btn) ->
+                # lock in save data
+                cdata.conceptURI = btn.getOpt("value")
+                cdata.conceptName = btn.getText()
+                # lock in form
+                cdata_form.getFieldsByName("conceptName")[0].storeValue(cdata.conceptName).displayValue()
+                # nach eadb5-Update durch "setText" ersetzen und "__checkbox" rausnehmen
+                cdata_form.getFieldsByName("conceptURI")[0].__checkbox.setText(cdata.conceptURI)
+                cdata_form.getFieldsByName("conceptURI")[0].show()
 
-        suggest_Menu.setItemList(itemList)
+                # clear searchbar
+                cdata_form.getFieldsByName("gn250SearchBar")[0].setValue('')
+              items: menu_items
 
-        suggest_Menu.show()
+            # if no hits set "empty" message to menu
+            if itemList.items.length == 0
+              itemList =
+                items: [
+                  text: "kein Treffer"
+                  value: undefined
+                ]
 
-    )
-    #.fail (data, status, statusText) ->
-        #CUI.debug 'FAIL', searchsuggest_xhr.getXHR(), searchsuggest_xhr.getResponseHeaders()
+            suggest_Menu.setItemList(itemList)
+
+            suggest_Menu.show()
+
+        )
+        #.fail (data, status, statusText) ->
+            #CUI.debug 'FAIL', searchsuggest_xhr.getXHR(), searchsuggest_xhr.getResponseHeaders()
+    ), delayMillisseconds
 
 
   #######################################################################

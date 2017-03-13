@@ -15,6 +15,11 @@ JS_FILE = build/webfrontend/custom-data-type-gn250.js
 
 all: ${JS_FILE} build-stamp-l10n
 
+library:
+	mkdir -p src/library
+	wget -O src/library/test.coffee https://github.com/programmfabrik/easydb-library/raw/master/README.md
+	echo "class Dummy" > src/library/test.coffee
+
 clean:
 	rm -f src/webfrontend/*.coffee.js
 	rm -f build-stamp-l10n
@@ -25,7 +30,7 @@ build-stamp-l10n: $(L10N_FILES) $(CULTURES_CSV)
 	$(L10N2JSON) $(CULTURES_CSV_IN_CONTAINER) $(L10N_FILES_IN_CONTAINER) $(PATH_IN_CONTAINER)/build/webfrontend/l10n/
 	touch $@
 
-${JS_FILE}: src/webfrontend/CustomDataTypeGN250.coffee.js
+${JS_FILE}:  src/library/test.coffee.js src/webfrontend/CustomDataTypeGN250.coffee.js
 	mkdir -p build/webfrontend
 	cat $^ > $@
 

@@ -1,7 +1,7 @@
 class CustomDataTypeGN250 extends CustomDataTypeWithCommons
 
   #######################################################################
-  # bugfix, may be removed after next update (1.3.2017)
+  # bugfix, may be removed after next update (1.3.2017) 
   getL10NPrefix: ->
     "custom.data.type.gn250"
 

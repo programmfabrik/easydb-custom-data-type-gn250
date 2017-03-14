@@ -1,101 +1,26 @@
-Session::getCustomDataTypes = ->
-  @getDefaults().server.custom_data_types or {}
+class CustomDataTypeGN250 extends CustomDataTypeWithCommons
 
-class CustomDataTypeGN250 extends CustomDataType
+  #######################################################################
+  # bugfix, may be removed after next update (1.3.2017)
+  getL10NPrefix: ->
+    "custom.data.type.gn250"
 
-  # custom style to head
-  CUI.ready =>
-    style = DOM.element("style")
-    style.innerHTML = ".gn250Popover { min-width:600px !important; } .gn250Input .cui-button-visual, .gn250Select .cui-button-visual { width: 100%; } .gn250Select > div { width: 100%; }"
-    document.head.appendChild(style)
-    console.log("CSS appended");
 
   #######################################################################
   # return name of plugin
   getCustomDataTypeName: ->
     "custom:base.custom-data-type-gn250.gn250"
 
+
   #######################################################################
   # return name (l10n) of plugin
   getCustomDataTypeNameLocalized: ->
     $$("custom.data.type.gn250.name")
 
-  #######################################################################
-  # check if field is empty
-  # needed for editor-table-view
-  isEmpty: (data, top_level_data, opts) ->
-      if data[@name()]?.conceptName
-          false
-      else
-          true
-
-  #######################################################################
-  # handle editorinput
-  renderEditorInput: (data, top_level_data, opts) ->
-    # console.error @, data, top_level_data, opts, @name(), @fullName()
-    if not data[@name()]
-      cdata = {
-            conceptName : ''
-            conceptURI : ''
-        }
-      data[@name()] = cdata
-    else
-      cdata = data[@name()]
-      conceptName = cdata.conceptName
-      conceptURI = cdata.conceptURI
-
-    @__renderEditorInputPopover(data, cdata)
-
-  #######################################################################
-  # buttons, which open and close popover
-  __renderEditorInputPopover: (data, cdata) ->
-
-    @__layout = new HorizontalLayout
-      left:
-        content:
-            new Buttonbar(
-              buttons: [
-                  new Button
-                      text: ""
-                      icon: 'edit'
-                      group: "groupA"
-
-                      onClick: (ev, btn) =>
-                        @showEditPopover(btn, cdata, data)
-
-                  new Button
-                      text: ""
-                      icon: 'trash'
-                      group: "groupA"
-                      onClick: (ev, btn) =>
-                        # delete data
-                        cdata = {
-                              conceptName : ''
-                              conceptURI : ''
-                        }
-                        data[@name()] = cdata
-                        # trigger form change
-                        Events.trigger
-                          node: @__layout
-                          type: "editor-changed"
-                        @__updateGN250Result(cdata)
-              ]
-            )
-      center: {}
-      right: {}
-    @__updateGN250Result(cdata)
-    @__layout
-
-  #######################################################################
-  # update result in Masterform
-  __updateGN250Result: (cdata) ->
-    btn = @__renderButtonByData(cdata)
-    @__layout.replace(btn, "right")
-
 
   #######################################################################
   # read info from gn250-terminology
-  __getInfoForGN250Entry: (uri, tooltip, mapquest_api_key, extendedInfo_xhr) ->
+  __getAdditionalTooltipInfo: (uri, tooltip, mapquest_api_key, extendedInfo_xhr) ->
 
     # extract gn250ID from uri
     gn250ID = uri
@@ -103,14 +28,13 @@ class CustomDataTypeGN250 extends CustomDataType
     gn250ID = gn250ID.pop()
 
     # download infos from entityfacts
-    if extendedInfo_xhr != undefined
-
+    if extendedInfo_xhr.xhr != undefined
       # abort eventually running request
-      extendedInfo_xhr.abort()
+      extendedInfo_xhr.xhr.abort()
 
     # start new request
-    extendedInfo_xhr = new (CUI.XHR)(url: location.protocol + '//uri.gbv.de/terminology/gn250/' + gn250ID + '?format=json')
-    extendedInfo_xhr.start()
+    extendedInfo_xhr.xhr = new (CUI.XHR)(url: location.protocol + '//uri.gbv.de/terminology/gn250/' + gn250ID + '?format=json')
+    extendedInfo_xhr.xhr.start()
     .done((data, status, statusText) ->
       htmlContent = '<span style="font-weight: bold">Informationen über den Eintrag</span>'
       if mapquest_api_key
@@ -167,7 +91,7 @@ class CustomDataTypeGN250 extends CustomDataType
       tooltip.autoSize()
     )
     .fail (data, status, statusText) ->
-        CUI.debug 'FAIL', extendedInfo_xhr.getXHR(), extendedInfo_xhr.getResponseHeaders()
+        CUI.debug 'FAIL', extendedInfo_xhr.xhr.getXHR(), extendedInfo_xhr.xhr.getResponseHeaders()
 
     return
 
@@ -181,8 +105,8 @@ class CustomDataTypeGN250 extends CustomDataType
 
     setTimeout ( ->
 
-        gn250_searchterm = cdata_form.getFieldsByName("gn250SearchBar")[0].getValue()
-        gn250_countSuggestions = cdata_form.getFieldsByName("gn250SelectCountOfSuggestions")[0].getValue()
+        gn250_searchterm = cdata_form.getFieldsByName("searchbarInput")[0].getValue()
+        gn250_countSuggestions = cdata_form.getFieldsByName("countOfSuggestions")[0].getValue()
 
         if gn250_searchterm.length == 0
             return
@@ -192,13 +116,13 @@ class CustomDataTypeGN250 extends CustomDataType
             # abort eventually running request
             searchsuggest_xhr.xhr.abort()
         # start new request
-        searchsuggest_xhr = new (CUI.XHR)(url: location.protocol + '//ws.gbv.de/suggest/gn250/?searchterm=' + gn250_searchterm + '&count=' + gn250_countSuggestions)
-        searchsuggest_xhr.start().done((data, status, statusText) ->
+        searchsuggest_xhr.xhr = new (CUI.XHR)(url: location.protocol + '//ws.gbv.de/suggest/gn250/?searchterm=' + gn250_searchterm + '&count=' + gn250_countSuggestions)
+        searchsuggest_xhr.xhr.start().done((data, status, statusText) ->
 
-            CUI.debug 'OK', searchsuggest_xhr.getXHR(), searchsuggest_xhr.getResponseHeaders()
+            CUI.debug 'OK', searchsuggest_xhr.xhr.getXHR(), searchsuggest_xhr.xhr.getResponseHeaders()
 
             # init xhr for tooltipcontent
-            extendedInfo_xhr = undefined
+            extendedInfo_xhr = { "xhr" : undefined }
 
             # create new menu with suggestions
             menu_items = []
@@ -232,7 +156,7 @@ class CustomDataTypeGN250 extends CustomDataType
                         mapquest_api_key = ''
                         if that.getCustomSchemaSettings().mapquest_api_key?.value
                             mapquest_api_key = that.getCustomSchemaSettings().mapquest_api_key?.value
-                        that.__getInfoForGN250Entry(data[3][key], tooltip, mapquest_api_key, extendedInfo_xhr)
+                        that.__getAdditionalTooltipInfo(data[3][key], tooltip, mapquest_api_key, extendedInfo_xhr)
                         new Label(icon: "spinner", text: "lade Informationen")
                 menu_items.push item
 
@@ -249,7 +173,7 @@ class CustomDataTypeGN250 extends CustomDataType
                 cdata_form.getFieldsByName("conceptURI")[0].show()
 
                 # clear searchbar
-                cdata_form.getFieldsByName("gn250SearchBar")[0].setValue('')
+                cdata_form.getFieldsByName("searchbarInput")[0].setValue('')
               items: menu_items
 
             # if no hits set "empty" message to menu
@@ -265,110 +189,7 @@ class CustomDataTypeGN250 extends CustomDataType
             suggest_Menu.show()
 
         )
-        #.fail (data, status, statusText) ->
-            #CUI.debug 'FAIL', searchsuggest_xhr.getXHR(), searchsuggest_xhr.getResponseHeaders()
     ), delayMillisseconds
-
-
-  #######################################################################
-  # reset form
-  __resetGN250Form: (cdata, cdata_form) ->
-    # clear variables
-    cdata.conceptName = ''
-    cdata.conceptURI = ''
-
-    # reset type-select
-    cdata_form.getFieldsByName("gn250SelectFeatureClasses")[0].setValue("DifferentiatedPerson")
-
-    # reset count of suggestions
-    cdata_form.getFieldsByName("gn250SelectCountOfSuggestions")[0].setValue(20)
-
-    # reset searchbar
-    cdata_form.getFieldsByName("gn250SearchBar")[0].setValue("")
-
-    # reset result name
-    cdata_form.getFieldsByName("conceptName")[0].storeValue("").displayValue()
-
-    # reset and hide result-uri-button
-    cdata_form.getFieldsByName("conceptURI")[0].__checkbox.setText("")
-    cdata_form.getFieldsByName("conceptURI")[0].hide()
-
-
-  #######################################################################
-  # if something in form is in/valid, set this status to masterform
-  __setEditorFieldStatus: (cdata, element) ->
-    switch @getDataStatus(cdata)
-      when "invalid"
-        element.addClass("cui-input-invalid")
-      else
-        element.removeClass("cui-input-invalid")
-
-    Events.trigger
-      node: element
-      type: "editor-changed"
-
-    @
-
-  #######################################################################
-  # show popover and fill it with the form-elements
-  showEditPopover: (btn, cdata, data) ->
-
-    # init xhr-object to abort running xhrs
-    searchsuggest_xhr = { "xhr" : undefined }
-
-    # set default value for count of suggestions
-    cdata.gn250SelectCountOfSuggestions = 20
-    cdata_form = new Form
-      data: cdata
-      fields: @__getEditorFields(cdata)
-      onDataChanged: =>
-        @__updateGN250Result(cdata)
-        @__setEditorFieldStatus(cdata, @__layout)
-        @__updateSuggestionsMenu(cdata, cdata_form, suggest_Menu, searchsuggest_xhr)
-    .start()
-
-    # init suggestmenu
-    suggest_Menu = new Menu
-        element : cdata_form.getFieldsByName("gn250SearchBar")[0]
-        use_element_width_as_min_width: true
-
-    xpane = new SimplePane
-      class: "cui-demo-pane-pane"
-      header_left:
-        new Label
-          text: "Header left shortcut"
-      content:
-        new Label
-          text: "Center content shortcut"
-      footer_right:
-        new Label
-          text: "Footer right shortcut"
-    @popover = new Popover
-      element: btn
-      placement: "wn"
-      class: "gn250Popover"
-      pane:
-        # titel of popovers
-        header_left: new LocaLabel(loca_key: "custom.data.type.gn250.edit.modal.title")
-        # "save"-button
-        footer_right: new Button
-            text: "Übernehmen"
-            onClick: =>
-              # put data to savedata
-              data.gn250 = {
-                conceptName : cdata.conceptName
-                conceptURI : cdata.conceptURI
-              }
-              # close popup
-              @popover.destroy()
-        # "reset"-button
-        footer_left: new Button
-            text: "Zurücksetzen"
-            onClick: =>
-              @__resetGN250Form(cdata, cdata_form)
-              @__updateGN250Result(cdata)
-        content: cdata_form
-    .show()
 
 
   #######################################################################
@@ -377,7 +198,7 @@ class CustomDataTypeGN250 extends CustomDataType
     fields = [
       {
         type: Select
-        class: "gn250Select"
+        class: "commonPlugin_Select"
         undo_and_changed_support: false
         form:
             label: $$('custom.data.type.gn250.modal.form.text.count')
@@ -398,17 +219,21 @@ class CustomDataTypeGN250 extends CustomDataType
               value: 100
               text: '100 Vorschläge'
           )
+          (
+              value: 500
+              text: '500 Vorschläge'
+          )
         ]
-        name: 'gn250SelectCountOfSuggestions'
+        name: 'countOfSuggestions'
       }
       {
         type: Input
-        class: "gn250Input"
+        class: "commonPlugin_Input"
         undo_and_changed_support: false
         form:
             label: $$("custom.data.type.gn250.modal.form.text.searchbar")
         placeholder: $$("custom.data.type.gn250.modal.form.text.searchbar.placeholder")
-        name: "gn250SearchBar"
+        name: "searchbarInput"
       }
       {
         form:
@@ -433,57 +258,15 @@ class CustomDataTypeGN250 extends CustomDataType
 
     fields
 
-  #######################################################################
-  # renders details-output of record
-  renderDetailOutput: (data, top_level_data, opts) ->
-    @__renderButtonByData(data[@name()])
-
-
-  #######################################################################
-  # checks the form and returns status
-  getDataStatus: (cdata) ->
-    if (cdata)
-        if cdata.conceptURI and cdata.conceptName
-          # check url for valididy
-          uriCheck = CUI.parseLocation(cdata.conceptURI)
-
-          # /^(https?|ftp):\/\/(((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:)*@)?(((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5]))|((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?)(:\d*)?)(\/((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)+(\/(([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)*)*)?)?(\?((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)|[\uE000-\uF8FF]|\/|\?)*)?(\#((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)|\/|\?)*)?$/i.test(value);
-
-          # uri-check patch!?!? returns always a result
-
-          nameCheck = if cdata.conceptName then cdata.conceptName.trim() else undefined
-
-          if uriCheck and nameCheck
-            console.debug "getDataStatus: OK "
-            return "ok"
-
-          if cdata.conceptURI.trim() == '' and cdata.conceptName.trim() == ''
-            console.debug "getDataStatus: empty"
-            return "empty"
-
-          console.debug "getDataStatus returns invalid"
-          return "invalid"
-        else
-          cdata = {
-                conceptName : ''
-                conceptURI : ''
-            }
-          console.debug "getDataStatus: empty"
-          return "empty"
-    else
-      cdata = {
-            conceptName : ''
-            conceptURI : ''
-        }
-      console.debug "getDataStatus: empty"
-      return "empty"
-
 
   #######################################################################
   # renders the "result" in original form (outside popover)
   __renderButtonByData: (cdata) ->
+
     that = @
+
     # when status is empty or invalid --> message
+
     switch @getDataStatus(cdata)
       when "empty"
         return new EmptyLabel(text: $$("custom.data.type.gn250.edit.no_gn250")).DOM
@@ -494,7 +277,7 @@ class CustomDataTypeGN250 extends CustomDataType
     cdata.conceptURI = CUI.parseLocation(cdata.conceptURI).url
 
     # if conceptURI .... ... patch abwarten
-
+    mapquest_api_key = @getCustomSchemaSettings().mapquest_api_key?.value
     # output Button with Name of picked GN250-Entry and URI
     new ButtonHref
       appearance: "link"
@@ -507,8 +290,7 @@ class CustomDataTypeGN250 extends CustomDataType
           uri = cdata.conceptURI
           gn250ID = uri.split('/')
           gn250ID = gn250ID.pop()
-          console.log gn250ID
-          # wenn mapquest-api-key
+          # wenn mapquest-api-key, dann
           # read mapquest-api-key from schema
           if that.getCustomSchemaSettings().mapquest_api_key?.value
               mapquest_api_key = that.getCustomSchemaSettings().mapquest_api_key?.value
@@ -522,20 +304,6 @@ class CustomDataTypeGN250 extends CustomDataType
       text: cdata.conceptName
     .DOM.html()
 
-
-  #######################################################################
-  # is called, when record is being saved by user
-  getSaveData: (data, save_data, opts) ->
-    cdata = data[@name()] or data._template?[@name()]
-    switch @getDataStatus(cdata)
-      when "invalid"
-        throw InvalidSaveDataException
-      when "empty"
-        save_data[@name()] = null
-      when "ok"
-        save_data[@name()] =
-          conceptName: cdata.conceptName.trim()
-          conceptURI: cdata.conceptURI.trim()
 
   #######################################################################
   # zeige die gewählten Optionen im Datenmodell unter dem Button an

@@ -13,14 +13,14 @@ L10N_FILES_IN_CONTAINER = $(PATH_IN_CONTAINER)/l10n/custom-data-type-gn250.csv
 
 JS_FILE = build/webfrontend/custom-data-type-gn250.js
 
-all: ${JS_FILE} build-stamp-l10n
+all: library ${JS_FILE} build-stamp-l10n
 
 library:
 	mkdir -p src/library
-	wget -O src/library/test.coffee https://github.com/programmfabrik/easydb-library/raw/master/README.md
-	echo "class Dummy" > src/library/test.coffee
+	wget -O src/library/commons.coffee https://raw.githubusercontent.com/programmfabrik/easydb-library/master/src/commons.coffee
 
 clean:
+	rm -f src/library/*.coffee
 	rm -f src/webfrontend/*.coffee.js
 	rm -f build-stamp-l10n
 	rm -rf build/
@@ -30,7 +30,7 @@ build-stamp-l10n: $(L10N_FILES) $(CULTURES_CSV)
 	$(L10N2JSON) $(CULTURES_CSV_IN_CONTAINER) $(L10N_FILES_IN_CONTAINER) $(PATH_IN_CONTAINER)/build/webfrontend/l10n/
 	touch $@
 
-${JS_FILE}:  src/library/test.coffee.js src/webfrontend/CustomDataTypeGN250.coffee.js
+${JS_FILE}: src/library/commons.coffee.js src/webfrontend/CustomDataTypeGN250.coffee.js
 	mkdir -p build/webfrontend
 	cat $^ > $@
 

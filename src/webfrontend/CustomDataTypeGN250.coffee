@@ -1,7 +1,7 @@
 class CustomDataTypeGN250 extends CustomDataTypeWithCommons
 
   #######################################################################
-  # bugfix, may be removed after next update (1.3.2017) 
+  # bugfix, may be removed after next update (1.3.2017)
   getL10NPrefix: ->
     "custom.data.type.gn250"
 
@@ -307,10 +307,15 @@ class CustomDataTypeGN250 extends CustomDataTypeWithCommons
 
   #######################################################################
   # zeige die gewählten Optionen im Datenmodell unter dem Button an
-  renderCustomDataOptionsInDatamodel: (custom_settings) ->
+  getCustomDataOptionsInDatamodelInfo: (custom_settings) ->
+    tags = []
+
     if custom_settings.mapquest_api_key?.value
-      new Label(text: "Mapquest-API-Key hinterlegt")
+      tags.push "✓ Mapquest-API-Key"
     else
-      new Label(text: "Kein Mapquest-API-Key hinterlegt")
+      tags.push "✘ Mapquest-API-Key"
+
+    tags
+
 
 CustomDataType.register(CustomDataTypeGN250)

@@ -18,5 +18,6 @@
 "custom.data.type.gn250.modal.form.text.uri.label","Zugehörige URI",
 "custom.data.type.gn250.modal.form.text.uri.label.placeholder","noch leer",
 "custom.data.type.gn250.url.tooltip","zu **%(name)s** bei der Deutschen Nationalbibliothek springen",
-"custom.data.type.gn250.setting.mask.show_infopopup", "Infopop für Treffer in der Vorschlagsliste anzeigen?",
-"custom.data.type.gn250.setting.schema.mapquest_api_key","Mapquest-Api-Key (für Kartenanzeige benötigt)",
+"custom.data.type.gn250.config.parameter.mask.show_infopopup.value.checkbox","Infopop für Treffer in der Vorschlagsliste anzeigen?",
+"custom.data.type.gn250.config.parameter.mask.show_infopopup.value.label", Infopopup,
+"custom.data.type.gn250.config.parameter.schema.mapquest_api_key.value.label","Mapquest-Api-Key (für Kartenanzeige benötigt)",

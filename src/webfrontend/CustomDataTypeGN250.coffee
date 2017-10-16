@@ -197,7 +197,7 @@ class CustomDataTypeGN250 extends CustomDataTypeWithCommons
   __getEditorFields: (cdata) ->
     fields = [
       {
-        type: Select
+        type: CUI.Select
         class: "commonPlugin_Select"
         undo_and_changed_support: false
         form:
@@ -227,7 +227,7 @@ class CustomDataTypeGN250 extends CustomDataTypeWithCommons
         name: 'countOfSuggestions'
       }
       {
-        type: Input
+        type: CUI.Input
         class: "commonPlugin_Input"
         undo_and_changed_support: false
         form:
@@ -238,16 +238,16 @@ class CustomDataTypeGN250 extends CustomDataTypeWithCommons
       {
         form:
           label: "Gewählter Eintrag"
-        type: Output
+        type: CUI.Output
         name: "conceptName"
         data: {conceptName: cdata.conceptName}
       }
       {
         form:
           label: "Verknüpfte URI"
-        type: FormButton
+        type: CUI.FormButton
         name: "conceptURI"
-        icon: new Icon(class: "fa-lightbulb-o")
+        icon: new CUI.Icon(class: "fa-lightbulb-o")
         text: cdata.conceptURI
         onClick: (evt,button) =>
           window.open cdata.conceptURI, "_blank"
@@ -269,9 +269,9 @@ class CustomDataTypeGN250 extends CustomDataTypeWithCommons
 
     switch @getDataStatus(cdata)
       when "empty"
-        return new EmptyLabel(text: $$("custom.data.type.gn250.edit.no_gn250")).DOM
+        return new CUI.EmptyLabel(text: $$("custom.data.type.gn250.edit.no_gn250")).DOM
       when "invalid"
-        return new EmptyLabel(text: $$("custom.data.type.gn250.edit.no_valid_gn250")).DOM
+        return new CUI.EmptyLabel(text: $$("custom.data.type.gn250.edit.no_valid_gn250")).DOM
 
     # if status is ok
     cdata.conceptURI = CUI.parseLocation(cdata.conceptURI).url
@@ -279,7 +279,7 @@ class CustomDataTypeGN250 extends CustomDataTypeWithCommons
     # if conceptURI .... ... patch abwarten
     mapquest_api_key = @getCustomSchemaSettings().mapquest_api_key?.value
     # output Button with Name of picked GN250-Entry and URI
-    new ButtonHref
+    new CUI.ButtonHref
       appearance: "link"
       href: cdata.conceptURI
       target: "_blank"
@@ -296,13 +296,12 @@ class CustomDataTypeGN250 extends CustomDataTypeWithCommons
               mapquest_api_key = that.getCustomSchemaSettings().mapquest_api_key?.value
           if mapquest_api_key
               htmlContent = '<div style="width:400px; height: 250px; background-color: gray; background-image: url(' + location.protocol  + '//ws.gbv.de/suggest/mapfromgn250id/?id=' + gn250ID + '&zoom=12&width=400&height=250&mapquestapikey=' + mapquest_api_key + '); background-repeat: no-repeat; background-position: center center;"></div>'
-              tooltip.DOM.html(htmlContent)
-              tooltip._pane.DOM.html(htmlContent)
+              tooltip.DOM.innerHTML = htmlContent
               tooltip.autoSize()
               htmlContent
 
       text: cdata.conceptName
-    .DOM.html()
+    .DOM
 
 
   #######################################################################

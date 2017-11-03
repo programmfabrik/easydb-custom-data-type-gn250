@@ -91,7 +91,7 @@ class CustomDataTypeGN250 extends CustomDataTypeWithCommons
       tooltip.autoSize()
     )
     .fail (data, status, statusText) ->
-        CUI.debug 'FAIL', extendedInfo_xhr.xhr.getXHR(), extendedInfo_xhr.xhr.getResponseHeaders()
+        console.debug 'FAIL', extendedInfo_xhr.xhr.getXHR(), extendedInfo_xhr.xhr.getResponseHeaders()
 
     return
 
@@ -119,7 +119,7 @@ class CustomDataTypeGN250 extends CustomDataTypeWithCommons
         searchsuggest_xhr.xhr = new (CUI.XHR)(url: location.protocol + '//ws.gbv.de/suggest/gn250/?searchterm=' + gn250_searchterm + '&count=' + gn250_countSuggestions)
         searchsuggest_xhr.xhr.start().done((data, status, statusText) ->
 
-            CUI.debug 'OK', searchsuggest_xhr.xhr.getXHR(), searchsuggest_xhr.xhr.getResponseHeaders()
+            console.debug 'OK', searchsuggest_xhr.xhr.getXHR(), searchsuggest_xhr.xhr.getResponseHeaders()
 
             # init xhr for tooltipcontent
             extendedInfo_xhr = { "xhr" : undefined }

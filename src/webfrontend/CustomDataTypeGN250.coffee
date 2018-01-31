@@ -36,7 +36,7 @@ class CustomDataTypeGN250 extends CustomDataTypeWithCommons
     extendedInfo_xhr.xhr = new (CUI.XHR)(url: location.protocol + '//uri.gbv.de/terminology/gn250/' + gn250ID + '?format=json')
     extendedInfo_xhr.xhr.start()
     .done((data, status, statusText) ->
-      htmlContent = '<span style="font-weight: bold">Informationen über den Eintrag</span>'
+      htmlContent = '<span style="font-weight: bold">' + $$('custom.data.type.gn250.config.parameter.mask.infopopup.popup.info') + '</span>'
       if mapquest_api_key
           url = location.protocol  + '//ws.gbv.de/suggest/mapfromgn250id/?id=' + gn250ID + '&zoom=12&width=400&height=250&mapquestapikey=' + mapquest_api_key;
           htmlContent += '<div style="width:400px; height: 250px; background-image: url(' + url + '); background-repeat: no-repeat; background-position: center center;"></div>'
@@ -52,42 +52,43 @@ class CustomDataTypeGN250 extends CustomDataTypeWithCommons
 
       if data.OBA_WERT
         if typeof data.OBA_WERT != 'object'
-            htmlContent += '<tr><td>OBA_WERT:</td><td>' + data.OBA_WERT + '</td></tr>'
+            htmlContent += '<tr><td>' + $$('custom.data.type.gn250.config.parameter.mask.infopopup.popup.oba_wert') + ':</td><td>' + data.OBA_WERT + '</td></tr>'
 
       if data.NAME
         if typeof data.NAME != 'object'
-            htmlContent += '<tr><td>Name:</td><td>' + data.NAME + '</td></tr>'
+            htmlContent += '<tr><td>' + $$('custom.data.type.gn250.config.parameter.mask.infopopup.popup.name') + ':</td><td>' + data.NAME + '</td></tr>'
 
       if data.E
         if typeof data.NAME2 != 'object'
-            htmlContent += '<tr><td>Name2:</td><td>' + data.NAME2 + '</td></tr>'
+            htmlContent += '<tr><td>' + $$('custom.data.type.gn250.config.parameter.mask.infopopup.popup.name2') + ':</td><td>' + data.NAME2 + '</td></tr>'
 
       if data.GEMEINDE
         if typeof data.GEMEINDE != 'object'
-            htmlContent += '<tr><td>Gemeinde:</td><td>' + data.GEMEINDE + '</td></tr>'
+            htmlContent += '<tr><td>' + $$('custom.data.type.gn250.config.parameter.mask.infopopup.popup.gemeinde') + ':</td><td>' + data.GEMEINDE + '</td></tr>'
 
       if data.VERWGEM
         if typeof data.VERWGEM != 'object'
-            htmlContent += '<tr><td>Verwaltungsgemeinde:</td><td>' + data.VERWGEM + '</td></tr>'
+            htmlContent += '<tr><td>' + $$('custom.data.type.gn250.config.parameter.mask.infopopup.popup.verwaltungsgemeinde') + ':</td><td>' + data.VERWGEM + '</td></tr>'
 
       if data.KREIS
         if typeof data.KREIS != 'object'
-            htmlContent += '<tr><td>Kreis:</td><td>' + data.KREIS + '</td></tr>'
+            htmlContent += '<tr><td>' + $$('custom.data.type.gn250.config.parameter.mask.infopopup.popup.kreis') + ':</td><td>' + data.KREIS + '</td></tr>'
 
       if data.REGBEZIRK
         if typeof data.REGBEZIRK != 'object'
-            htmlContent += '<tr><td>Reg.Bezirk:</td><td>' + data.REGBEZIRK + '</td></tr>'
+            htmlContent += '<tr><td>' + $$('custom.data.type.gn250.config.parameter.mask.infopopup.popup.bezirk') + ':</td><td>' + data.REGBEZIRK + '</td></tr>'
 
       if data.BUNDESLAND
         if typeof data.BUNDESLAND != 'object'
-            htmlContent += '<tr><td>Bundesland:</td><td>' + data.BUNDESLAND + '</td></tr>'
+            htmlContent += '<tr><td>' + $$('custom.data.type.gn250.config.parameter.mask.infopopup.popup.bundesland') + ':</td><td>' + data.BUNDESLAND + '</td></tr>'
 
       if data.SOURCE
         if typeof data.SOURCE != 'object'
-            htmlContent += '<tr><td>Quelle:</td><td>' + data.SOURCE + '</td></tr>'
+            htmlContent += '<tr><td>' + $$('custom.data.type.gn250.config.parameter.mask.infopopup.popup.quelle') + ':</td><td>' + data.SOURCE + '</td></tr>'
 
       #tooltip.getPane().replace(htmlContent, "center")
-      tooltip.DOM.html(htmlContent);
+      #tooltip.DOM.html(htmlContent);
+      tooltip.DOM.innerHTML = htmlContent
       tooltip.autoSize()
     )
 
@@ -153,7 +154,7 @@ class CustomDataTypeGN250 extends CustomDataTypeWithCommons
                         if that.getCustomSchemaSettings().mapquest_api_key?.value
                             mapquest_api_key = that.getCustomSchemaSettings().mapquest_api_key?.value
                         that.__getAdditionalTooltipInfo(data[3][key], tooltip, mapquest_api_key, extendedInfo_xhr)
-                        new Label(icon: "spinner", text: "lade Informationen")
+                        new CUI.Label(icon: "spinner", text: $$('custom.data.type.gn250.config.parameter.mask.show_infopopup.loading.label'))
                 menu_items.push item
 
             # set new items to menu
@@ -201,23 +202,23 @@ class CustomDataTypeGN250 extends CustomDataTypeWithCommons
         options: [
           (
               value: 10
-              text: '10 Vorschläge'
+              text: '10 ' + $$('custom.data.type.gn250.modal.form.text.count_short')
           )
           (
               value: 20
-              text: '20 Vorschläge'
+              text: '20 ' + $$('custom.data.type.gn250.modal.form.text.count_short')
           )
           (
               value: 50
-              text: '50 Vorschläge'
+              text: '50 ' + $$('custom.data.type.gn250.modal.form.text.count_short')
           )
           (
               value: 100
-              text: '100 Vorschläge'
+              text: '100 ' + $$('custom.data.type.gn250.modal.form.text.count_short')
           )
           (
               value: 500
-              text: '500 Vorschläge'
+              text: '500 ' + $$('custom.data.type.gn250.modal.form.text.count_short')
           )
         ]
         name: 'countOfSuggestions'
@@ -233,14 +234,14 @@ class CustomDataTypeGN250 extends CustomDataTypeWithCommons
       }
       {
         form:
-          label: "Gewählter Eintrag"
+          label: $$('custom.data.type.gn250.modal.form.text.result.label')
         type: CUI.Output
         name: "conceptName"
         data: {conceptName: cdata.conceptName}
       }
       {
         form:
-          label: "Verknüpfte URI"
+          label: $$('custom.data.type.gn250.modal.form.text.uri.label')
         type: CUI.FormButton
         name: "conceptURI"
         icon: new CUI.Icon(class: "fa-lightbulb-o")

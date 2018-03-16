@@ -1,6 +1,13 @@
 plugin:
   name: custom-data-type-gn250
   version: 1.2
+  url: https://github.com/programmfabrik/easydb-custom-data-type-gn250
+  displayname:
+    de-DE: gn250-Verknüpfung
+    en-US: gn250-Referencing
+  info:
+    de-DE: Stellt Verknüpfungen mit den geographischen Daten des Bundesamtes für Kartographie und Geodäsie her.
+    en-US: Provides links to the geographic data of the Federal Agency for Cartography and Geodesy.
   server:
     api-version:
       require: 1

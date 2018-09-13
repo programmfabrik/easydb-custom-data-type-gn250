@@ -20,16 +20,20 @@ class CustomDataTypeGN250 extends CustomDataTypeWithCommons
 
   #######################################################################
   # read info from gn250-terminology
-  __getAdditionalTooltipInfo: (uri, tooltip, mapquest_api_key, extendedInfo_xhr) ->
+  __getAdditionalTooltipInfo: (encodedURI, tooltip, extendedInfo_xhr) ->
+
+    that = @
 
     # extract gn250ID from uri
+
+    #decode uri
+    uri = decodeURIComponent(encodedURI)
     gn250ID = uri
     gn250ID = gn250ID.split "/"
     gn250ID = gn250ID.pop()
 
-    # download infos from entityfacts
+    # abort eventually running request
     if extendedInfo_xhr.xhr != undefined
-      # abort eventually running request
       extendedInfo_xhr.xhr.abort()
 
     # start new request
@@ -37,9 +41,11 @@ class CustomDataTypeGN250 extends CustomDataTypeWithCommons
     extendedInfo_xhr.xhr.start()
     .done((data, status, statusText) ->
       htmlContent = '<span style="font-weight: bold">' + $$('custom.data.type.gn250.config.parameter.mask.infopopup.popup.info') + '</span>'
+      mapquest_api_key = that.getCustomSchemaSettings().mapquest_api_key?.value
       if mapquest_api_key
           url = location.protocol  + '//ws.gbv.de/suggest/mapfromgn250id/?id=' + gn250ID + '&zoom=12&width=400&height=250&mapquestapikey=' + mapquest_api_key;
           htmlContent += '<div style="width:400px; height: 250px; background-image: url(' + url + '); background-repeat: no-repeat; background-position: center center;"></div>'
+
       htmlContent += '<table style="border-spacing: 10px; border-collapse: separate;">'
 
       if data.NNID
@@ -97,15 +103,19 @@ class CustomDataTypeGN250 extends CustomDataTypeWithCommons
 
   #######################################################################
   # handle suggestions-menu
-  __updateSuggestionsMenu: (cdata, cdata_form, suggest_Menu, searchsuggest_xhr) ->
+  __updateSuggestionsMenu: (cdata, cdata_form, searchstring, input, suggest_Menu, searchsuggest_xhr, layout) ->
     that = @
 
     delayMillisseconds = 200
 
     setTimeout ( ->
 
-        gn250_searchterm = cdata_form.getFieldsByName("searchbarInput")[0].getValue()
-        gn250_countSuggestions = cdata_form.getFieldsByName("countOfSuggestions")[0].getValue()
+        gn250_searchterm = searchstring
+        gn250_countSuggestions = 20
+
+        if cdata_form
+          gn250_searchterm = cdata_form.getFieldsByName("searchbarInput")[0].getValue()
+          gn250_countSuggestions = cdata_form.getFieldsByName("countOfSuggestions")[0].getValue()
 
         if gn250_searchterm.length == 0
             return
@@ -114,6 +124,7 @@ class CustomDataTypeGN250 extends CustomDataTypeWithCommons
         if searchsuggest_xhr.xhr != undefined
             # abort eventually running request
             searchsuggest_xhr.xhr.abort()
+
         # start new request
         searchsuggest_xhr.xhr = new (CUI.XHR)(url: location.protocol + '//ws.gbv.de/suggest/gn250/?searchterm=' + gn250_searchterm + '&count=' + gn250_countSuggestions)
         searchsuggest_xhr.xhr.start().done((data, status, statusText) ->
@@ -153,7 +164,7 @@ class CustomDataTypeGN250 extends CustomDataTypeWithCommons
                         mapquest_api_key = ''
                         if that.getCustomSchemaSettings().mapquest_api_key?.value
                             mapquest_api_key = that.getCustomSchemaSettings().mapquest_api_key?.value
-                        that.__getAdditionalTooltipInfo(data[3][key], tooltip, mapquest_api_key, extendedInfo_xhr)
+                        that.__getAdditionalTooltipInfo(data[3][key], tooltip, extendedInfo_xhr)
                         new CUI.Label(icon: "spinner", text: $$('custom.data.type.gn250.config.parameter.mask.show_infopopup.loading.label'))
                 menu_items.push item
 
@@ -163,14 +174,13 @@ class CustomDataTypeGN250 extends CustomDataTypeWithCommons
                 # lock in save data
                 cdata.conceptURI = btn.getOpt("value")
                 cdata.conceptName = btn.getText()
-                # lock in form
-                cdata_form.getFieldsByName("conceptName")[0].storeValue(cdata.conceptName).displayValue()
-                # nach eadb5-Update durch "setText" ersetzen und "__checkbox" rausnehmen
-                cdata_form.getFieldsByName("conceptURI")[0].__checkbox.setText(cdata.conceptURI)
-                cdata_form.getFieldsByName("conceptURI")[0].show()
-
-                # clear searchbar
-                cdata_form.getFieldsByName("searchbarInput")[0].setValue('')
+                # update the layout in form
+                that.__updateResult(cdata, layout)
+                # hide suggest-menu
+                suggest_Menu.hide()
+                # close popover
+                if that.popover
+                  that.popover.hide()
               items: menu_items
 
             # if no hits set "empty" message to menu
@@ -231,26 +241,6 @@ class CustomDataTypeGN250 extends CustomDataTypeWithCommons
             label: $$("custom.data.type.gn250.modal.form.text.searchbar")
         placeholder: $$("custom.data.type.gn250.modal.form.text.searchbar.placeholder")
         name: "searchbarInput"
-      }
-      {
-        form:
-          label: $$('custom.data.type.gn250.modal.form.text.result.label')
-        type: CUI.Output
-        name: "conceptName"
-        data: {conceptName: cdata.conceptName}
-      }
-      {
-        form:
-          label: $$('custom.data.type.gn250.modal.form.text.uri.label')
-        type: CUI.FormButton
-        name: "conceptURI"
-        icon: new CUI.Icon(class: "fa-lightbulb-o")
-        text: cdata.conceptURI
-        onClick: (evt,button) =>
-          window.open cdata.conceptURI, "_blank"
-        onRender : (_this) =>
-          if cdata.conceptURI == ''
-            _this.hide()
       }]
 
     fields
@@ -273,31 +263,38 @@ class CustomDataTypeGN250 extends CustomDataTypeWithCommons
     # if status is ok
     cdata.conceptURI = CUI.parseLocation(cdata.conceptURI).url
 
-    # if conceptURI .... ... patch abwarten
-    mapquest_api_key = @getCustomSchemaSettings().mapquest_api_key?.value
-    # output Button with Name of picked GN250-Entry and URI
-    new CUI.ButtonHref
-      appearance: "link"
-      href: cdata.conceptURI
-      target: "_blank"
-      tooltip:
-        markdown: true
-        placement: 'n'
-        content: (tooltip) ->
-          uri = cdata.conceptURI
-          gn250ID = uri.split('/')
-          gn250ID = gn250ID.pop()
-          # wenn mapquest-api-key, dann
-          # read mapquest-api-key from schema
-          if that.getCustomSchemaSettings().mapquest_api_key?.value
-              mapquest_api_key = that.getCustomSchemaSettings().mapquest_api_key?.value
-          if mapquest_api_key
-              htmlContent = '<div style="width:400px; height: 250px; background-color: gray; background-image: url(' + location.protocol  + '//ws.gbv.de/suggest/mapfromgn250id/?id=' + gn250ID + '&zoom=12&width=400&height=250&mapquestapikey=' + mapquest_api_key + '); background-repeat: no-repeat; background-position: center center;"></div>'
-              tooltip.DOM.innerHTML = htmlContent
-              tooltip.autoSize()
-              htmlContent
-
-      text: cdata.conceptName
+    # output Button with Name of picked Entry and URI
+    new CUI.HorizontalLayout
+      maximize: true
+      left:
+        content:
+          new CUI.Label
+            centered: true
+            text: cdata.conceptName
+      center:
+        content:
+          # Url to the Source
+          new CUI.ButtonHref
+            appearance: "link"
+            href: cdata.conceptURI
+            target: "_blank"
+            tooltip:
+              markdown: true
+              placement: 'n'
+              content: (tooltip) ->
+                uri = cdata.conceptURI
+                gn250ID = uri.split('/')
+                gn250ID = gn250ID.pop()
+                # read mapquest-api-key from schema
+                if that.getCustomSchemaSettings().mapquest_api_key?.value
+                    mapquest_api_key = that.getCustomSchemaSettings().mapquest_api_key?.value
+                if mapquest_api_key
+                    htmlContent = '<div style="width:400px; height: 250px; background-color: gray; background-image: url(' + location.protocol  + '//ws.gbv.de/suggest/mapfromgn250id/?id=' + gn250ID + '&zoom=12&width=400&height=250&mapquestapikey=' + mapquest_api_key + '); background-repeat: no-repeat; background-position: center center;"></div>'
+                    tooltip.DOM.innerHTML = htmlContent
+                    tooltip.autoSize()
+                    htmlContent
+            text: ""
+      right: null
     .DOM
 
 

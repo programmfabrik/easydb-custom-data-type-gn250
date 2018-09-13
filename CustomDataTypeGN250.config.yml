@@ -1,6 +1,6 @@
 plugin:
   name: custom-data-type-gn250
-  version: 1.2
+  version: 1.3
   url: https://github.com/programmfabrik/easydb-custom-data-type-gn250
   displayname:
     de-DE: gn250-Verknüpfung

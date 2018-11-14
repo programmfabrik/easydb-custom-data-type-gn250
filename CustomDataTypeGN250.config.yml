@@ -11,12 +11,10 @@ plugin:
   server:
     api-version:
       require: 1
-  scss:
-      body:
-        - build/webfrontend/custom-data-type-gn250.scss
   webfrontend:
     url: custom-data-type-gn250.js
     l10n: l10n/
+    css: custom-data-type-gn250.css
 custom_types:
   gn250:
     mapping:

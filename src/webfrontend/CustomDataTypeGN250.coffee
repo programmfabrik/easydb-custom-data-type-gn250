@@ -269,7 +269,7 @@ class CustomDataTypeGN250 extends CustomDataTypeWithCommons
       left:
         content:
           new CUI.Label
-            centered: true
+            centered: false
             text: cdata.conceptName
       center:
         content:

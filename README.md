@@ -16,11 +16,11 @@ As defined in `CustomDataTypeGN250.config.yml` this datatype can be configured:
 
 ### Schema options
 
-* which "mapquest-API-key" to use
+* which "mapbox-token" to use
 
 ### Mask options
 
-* whether additional informationen is loaded if the mouse hovers a suggestion in the search result
+* none
 
 ## saved data
 * conceptName
@@ -35,4 +35,3 @@ As defined in `CustomDataTypeGN250.config.yml` this datatype can be configured:
 ## sources
 
 The source code of this plugin is managed in a git repository at <https://github.com/programmfabrik/easydb-custom-data-type-gn250>. Please use [the issue tracker](https://github.com/programmfabrik/easydb-custom-data-type-gn250/issues) for bug reports and feature requests!
-

@@ -25,8 +25,6 @@ class CustomDataTypeGN250 extends CustomDataTypeWithCommons
     that = @
 
     # extract gn250ID from uri
-
-    #decode uri
     uri = decodeURIComponent(encodedURI)
     gn250ID = uri
     gn250ID = gn250ID.split "/"
@@ -40,11 +38,28 @@ class CustomDataTypeGN250 extends CustomDataTypeWithCommons
     extendedInfo_xhr.xhr = new (CUI.XHR)(url: location.protocol + '//uri.gbv.de/terminology/gn250/' + gn250ID + '?format=json')
     extendedInfo_xhr.xhr.start()
     .done((data, status, statusText) ->
-      htmlContent = '<span style="font-weight: bold">' + $$('custom.data.type.gn250.config.parameter.mask.infopopup.popup.info') + '</span>'
-      mapquest_api_key = that.getCustomSchemaSettings().mapquest_api_key?.value
-      if mapquest_api_key
-          url = location.protocol  + '//ws.gbv.de/suggest/mapfromgn250id/?id=' + gn250ID + '&zoom=12&width=400&height=250&mapquestapikey=' + mapquest_api_key;
-          htmlContent += '<div style="width:400px; height: 250px; background-image: url(' + url + '); background-repeat: no-repeat; background-position: center center;"></div>'
+      htmlContent = '<span style="padding: 10px 10px 0px 10px; font-weight: bold">' + $$('custom.data.type.gn250.config.parameter.mask.infopopup.popup.info') + '</span>'
+      if that.getCustomSchemaSettings().mapbox_api_key?.value
+          mapbox_api_key = that.getCustomSchemaSettings().mapbox_api_key?.value
+      if mapbox_api_key
+        geoStr = data.BOX_GEO
+        geoStr = geoStr.replace('POLYGON ((', '')
+        geoStr = geoStr.replace('))', '')
+        geoPositions = geoStr.split(',')
+
+        positionTL = geoPositions[0].split(' ')
+        positionTL = positionTL.map(Number)
+
+        positionBR = geoPositions[2].split(' ')
+        positionBR = positionBR.map(Number)
+
+        coord1 = positionTL[1] + ((positionBR[1] - positionTL[1]) / 2)
+        coord2 = positionTL[0] + ((positionBR[0] - positionTL[0]) / 2)
+
+        if coord1 != 0 & coord2 != 0
+          url = location.protocol + '//api.mapbox.com/styles/v1/mapbox/streets-v11/static/' + coord2 + ',' + coord1 + ',11/400x200@2x?access_token=' + mapbox_api_key
+          htmlContent += '<div style="width:400px; height: 250px; background-size: contain; background-image: url(' + url + '); background-repeat: no-repeat; background-position: center center;"></div>'
+
 
       htmlContent += '<table style="border-spacing: 10px; border-collapse: separate;">'
 
@@ -90,10 +105,9 @@ class CustomDataTypeGN250 extends CustomDataTypeWithCommons
 
       if data.SOURCE
         if typeof data.SOURCE != 'object'
-            htmlContent += '<tr><td>' + $$('custom.data.type.gn250.config.parameter.mask.infopopup.popup.quelle') + ':</td><td>' + data.SOURCE + '</td></tr>'
+            dataSource = data.SOURCE.replace(' - ', '<br />')
+            htmlContent += '<tr><td>' + $$('custom.data.type.gn250.config.parameter.mask.infopopup.popup.quelle') + ':</td><td>' + dataSource + '</td></tr>'
 
-      #tooltip.getPane().replace(htmlContent, "center")
-      #tooltip.DOM.html(htmlContent);
       tooltip.DOM.innerHTML = htmlContent
       tooltip.autoSize()
     )
@@ -159,13 +173,11 @@ class CustomDataTypeGN250 extends CustomDataTypeWithCommons
                     markdown: true
                     placement: "e"
                     content: (tooltip) ->
-                      # if enabled in mask-config
-                      if that.getCustomMaskSettings().show_infopopup?.value
-                        mapquest_api_key = ''
-                        if that.getCustomSchemaSettings().mapquest_api_key?.value
-                            mapquest_api_key = that.getCustomSchemaSettings().mapquest_api_key?.value
-                        that.__getAdditionalTooltipInfo(data[3][key], tooltip, extendedInfo_xhr)
-                        new CUI.Label(icon: "spinner", text: $$('custom.data.type.gn250.config.parameter.mask.show_infopopup.loading.label'))
+                      mapbox_api_key = ''
+                      if that.getCustomSchemaSettings().mapbox_api_key?.value
+                          mapbox_api_key = that.getCustomSchemaSettings().mapbox_api_key?.value
+                      that.__getAdditionalTooltipInfo(data[3][key], tooltip, extendedInfo_xhr)
+                      new CUI.Label(icon: "spinner", text: $$('custom.data.type.gn250.config.parameter.mask.show_infopopup.loading.label'))
                 menu_items.push item
 
             # set new items to menu
@@ -263,6 +275,8 @@ class CustomDataTypeGN250 extends CustomDataTypeWithCommons
     # if status is ok
     cdata.conceptURI = CUI.parseLocation(cdata.conceptURI).url
 
+    extendedInfo_xhr = { "xhr" : undefined }
+
     # output Button with Name of picked Entry and URI
     new CUI.HorizontalLayout
       maximize: true
@@ -282,17 +296,8 @@ class CustomDataTypeGN250 extends CustomDataTypeWithCommons
               markdown: true
               placement: 'n'
               content: (tooltip) ->
-                uri = cdata.conceptURI
-                gn250ID = uri.split('/')
-                gn250ID = gn250ID.pop()
-                # read mapquest-api-key from schema
-                if that.getCustomSchemaSettings().mapquest_api_key?.value
-                    mapquest_api_key = that.getCustomSchemaSettings().mapquest_api_key?.value
-                if mapquest_api_key
-                    htmlContent = '<div style="width:400px; height: 250px; background-color: gray; background-image: url(' + location.protocol  + '//ws.gbv.de/suggest/mapfromgn250id/?id=' + gn250ID + '&zoom=12&width=400&height=250&mapquestapikey=' + mapquest_api_key + '); background-repeat: no-repeat; background-position: center center;"></div>'
-                    tooltip.DOM.innerHTML = htmlContent
-                    tooltip.autoSize()
-                    htmlContent
+                that.__getAdditionalTooltipInfo(cdata.conceptURI, tooltip, extendedInfo_xhr)
+                new CUI.Label(icon: "spinner", text: "lade Informationen")
             text: ""
       right: null
     .DOM
@@ -303,10 +308,10 @@ class CustomDataTypeGN250 extends CustomDataTypeWithCommons
   getCustomDataOptionsInDatamodelInfo: (custom_settings) ->
     tags = []
 
-    if custom_settings.mapquest_api_key?.value
-      tags.push "✓ Mapquest-API-Key"
+    if custom_settings.mapbox_api_key?.value
+      tags.push "✓ mapbox-token"
     else
-      tags.push "✘ Mapquest-API-Key"
+      tags.push "✘ mapbox-token"
 
     tags
 

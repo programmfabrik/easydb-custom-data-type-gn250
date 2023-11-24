@@ -15,17 +15,15 @@ INSTALL_FILES = \
 COFFEE_FILES = easydb-library/src/commons.coffee \
     src/webfrontend/CustomDataTypeGN250.coffee
 
-CSS_FILES = src/webfrontend/css/main.css
+CSS_FILE = src/webfrontend/css/main.css
 
 all: build
 
 include easydb-library/tools/base-plugins.make
 
-$(CSS): $(CSS_FILES)
-	cat $(CSS_FILES) > $(CSS)
-
 build: code buildinfojson
 
 code: $(JS) $(L10N)
+	    cat $(CSS_FILE) >> build/webfrontend/custom-data-type-gn250.css
 
 clean: clean-base

@@ -24,6 +24,6 @@ include easydb-library/tools/base-plugins.make
 build: code buildinfojson
 
 code: $(JS) $(L10N)
-	    cat $(CSS_FILE) >> build/webfrontend/custom-data-type-gn250.css
+	    cat $(CSS_FILE) > build/webfrontend/custom-data-type-gn250.css
 
 clean: clean-base
